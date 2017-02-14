@@ -46,6 +46,9 @@ task main()
 	// User control code here, inside the loop
 	startTask(runArm);
 
+	//Create "deadzone" variables.
+	int X2 = 0, Y1 = 0, X1 = 0, threshold = 30;
+
 	while (true)
 	{
 		// This is the main execution loop for the user control program.
@@ -57,12 +60,32 @@ task main()
 		// update your motors, etc.
 		// ........................................................................
 
+	 //Holonomic Drive Deadzone
+   if(abs(C1LY) > threshold){
+      Y1 = C1LY;
+   }
+   else{
+      Y1 = 0;
+   }
+   if(abs(C1LX) > threshold){
+      X1 = C1LX;
+   }
+   else{
+      X1 = 0;
+   }
+   if(abs(C1RX) > threshold){
+      X2 = C1RX;
+   }
+   else{
+      X2 = 0;
+   }
+
 		//Holonomic Drive
 		// Y component, X component, Rotation
-		motor[FL] = -C1LY - C1LX - C1RX;
-		motor[FR] =  C1LY - C1LX - C1RX;
-		motor[BR] =  C1LY + C1LX - C1RX;
-		motor[BL] = -C1LY + C1LX - C1RX;
+		motor[FL] = -Y1 - X1 - X2;
+		motor[FR] =  Y1 - X1 - X2;
+		motor[BR] =  Y1 + X1 - X2;
+		motor[BL] = -Y1 + X1 - X2;
 
 		//Arm CHUCK
 		if(vexRT[Btn7U] == 1)
