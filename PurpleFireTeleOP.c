@@ -1,4 +1,6 @@
-#pragma config(Motor,  port2,           ARMA,          tmotorVex393_MC29, openLoop)
+#pragma config(Sensor, in1,    POT,            sensorPotentiometer)
+#pragma config(Sensor, in2,    GYRO,           sensorNone)
+#pragma config(Motor,  port2,           ARMA,          tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port3,           ARMB,          tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port4,           FR,            tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port5,           BR,            tmotorVex393_MC29, openLoop, reversed)
@@ -13,9 +15,36 @@
 #define ARMUP vexRT[Btn6U]
 #define ARMDOWN vexRT[ChBtn6D]
 
+#define downPOS 2800
+#define upPOS 1800
+#define chuckPOS 875
+
+float target, //the potentiometer value you want
+error, //the difference between target and current
+proportionalCoefficient, //what you multiply error by to get motor power
+proportional, //P term, what you set motors to
+motorPower; //what you set the motors to
+
+task runArm()
+{
+	target = downPOS;
+	proportionalCoefficient = 0.5;
+	while (true)
+	{
+		error = target - SensorValue[POT];
+		proportional = error * proportionalCoefficient;
+		motorPower = proportional;
+		motor[ARMA] = motorPower;
+		motor[ARMB] = motorPower;
+		// Motor values can only be updated every 20ms
+		wait1Msec(20);
+	}
+}
+
 task main()
 {
 	// User control code here, inside the loop
+	startTask(runArm);
 
 	while (true)
 	{
@@ -35,26 +64,24 @@ task main()
 		motor[BR] =  C1LY + C1LX - C1RX;
 		motor[BL] = -C1LY + C1LX - C1RX;
 
-		//Arm UP
-		if(vexRT[Btn6U] == 1)
+		//Arm CHUCK
+		if(vexRT[Btn7U] == 1)
 		{
-			motor[ARMA] = 127;
-			motor[ARMB] = 127;
+			target = chuckPOS;
+		}
+		//Arm UP
+		else if(vexRT[Btn7L] == 1)
+		{
+			target = upPOS;
 		}
 		//Arm Down
-		else if(vexRT[Btn6D] == 1)
+		else if(vexRT[Btn7D] == 1)
 		{
-			motor[ARMA] = -127;
-			motor[ARMB] = -127;
-		}
-		//Arm Halt
-		else{
-			motor[ARMA] = 0;
-			motor[ARMB] = 0;
+			target = downPOS;
 		}
 
 		// Motor values can only be updated every 20ms
-		wait10Msec(2);
+		wait1Msec(20);
 
 	}
 
