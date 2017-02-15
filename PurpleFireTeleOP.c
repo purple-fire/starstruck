@@ -29,6 +29,7 @@ task runArm()
 {
 	target = downPOS;
 	proportionalCoefficient = 0.5;
+
 	while (true)
 	{
 		error = target - SensorValue[POT];
@@ -39,6 +40,15 @@ task runArm()
 		// Motor values can only be updated every 20ms
 		wait1Msec(20);
 	}
+}
+
+void holonomicDrive(int Y1,int X1,int X2)
+{
+	// Y component, X component, Rotation
+	motor[FL] = -Y1 - X1 - X2;
+	motor[FR] =  Y1 - X1 - X2;
+	motor[BR] =  Y1 + X1 - X2;
+	motor[BL] = -Y1 + X1 - X2;
 }
 
 task main()
@@ -60,32 +70,28 @@ task main()
 		// update your motors, etc.
 		// ........................................................................
 
-	 //Holonomic Drive Deadzone
-   if(abs(C1LY) > threshold){
-      Y1 = C1LY;
-   }
-   else{
-      Y1 = 0;
-   }
-   if(abs(C1LX) > threshold){
-      X1 = C1LX;
-   }
-   else{
-      X1 = 0;
-   }
-   if(abs(C1RX) > threshold){
-      X2 = C1RX;
-   }
-   else{
-      X2 = 0;
-   }
+		//Holonomic Drive Deadzone
+		if(abs(C1LY) > threshold){
+			Y1 = C1LY;
+		}
+		else{
+			Y1 = 0;
+		}
+		if(abs(C1LX) > threshold){
+			X1 = C1LX;
+		}
+		else{
+			X1 = 0;
+		}
+		if(abs(C1RX) > threshold){
+			X2 = C1RX;
+		}
+		else{
+			X2 = 0;
+		}
 
-		//Holonomic Drive
-		// Y component, X component, Rotation
-		motor[FL] = -Y1 - X1 - X2;
-		motor[FR] =  Y1 - X1 - X2;
-		motor[BR] =  Y1 + X1 - X2;
-		motor[BL] = -Y1 + X1 - X2;
+		//Holonomic Drive Function
+		holonomicDrive(Y1,X1,X2);
 
 		//Arm CHUCK
 		if(vexRT[Btn7U] == 1)
