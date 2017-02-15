@@ -19,12 +19,15 @@
 #define upPOS 1800
 #define chuckPOS 875
 
+int armMode = 0;
+
 float target, //the potentiometer value you want
 error, //the difference between target and current
 proportionalCoefficient, //what you multiply error by to get motor power
 proportional, //P term, what you set motors to
 motorPower; //what you set the motors to
 
+//Task to Manage Arm Position
 task runArm()
 {
 	target = downPOS;
@@ -32,16 +35,54 @@ task runArm()
 
 	while (true)
 	{
-		error = target - SensorValue[POT];
-		proportional = error * proportionalCoefficient;
-		motorPower = proportional;
-		motor[ARMA] = motorPower;
-		motor[ARMB] = motorPower;
-		// Motor values can only be updated every 20ms
-		wait1Msec(20);
+		//ENABLE PID
+		if(armMode==1){
+			error = target - SensorValue[POT];
+			proportional = error * proportionalCoefficient;
+			motorPower = proportional;
+			motor[ARMA] = motorPower;
+			motor[ARMB] = motorPower;
+		}
+		//DISABLE PID
+		else if(armMode==0){
+			//Arm UP
+			if(vexRT[Btn5U] == 1)
+			{
+				//Soft Limit For Going UP
+				if(SensorValue[POT]>chuckPOS){
+					motor[ARMA] = -50;
+					motor[ARMB] = -50;
+				}
+				else{
+					motor[ARMA] = 0;
+					motor[ARMB] = 0;
+				}
+			}
+			//Arm Down
+			else if(vexRT[Btn5D] == 1)
+			{
+				//Soft Limit For Going DOWN
+				if(SensorValue[POT]<downPOS){
+					motor[ARMA] = 50;
+					motor[ARMB] = 50;
+				}
+				else{
+					motor[ARMA] = 0;
+					motor[ARMB] = 0;
+				}
+			}
+			//Arm Stop
+			else{
+				motor[ARMA] = 0;
+				motor[ARMB] = 0;
+			}
+			// Motor values can only be updated every 20ms
+			wait1Msec(20);
+		}
 	}
 }
 
+//Holonomic Drive using 3 Inputs
 void holonomicDrive(int Y1,int X1,int X2)
 {
 	// Y component, X component, Rotation
@@ -55,6 +96,8 @@ task main()
 {
 	// User control code here, inside the loop
 	startTask(runArm);
+	//Set arm mode to enable PID
+	armMode = 1;
 
 	//Create "deadzone" variables.
 	int X2 = 0, Y1 = 0, X1 = 0, threshold = 30;
@@ -107,6 +150,21 @@ task main()
 		else if(vexRT[Btn7D] == 1)
 		{
 			target = downPOS;
+		}
+
+		//Toggle PID
+		if(vexRT[Btn6U] == 1)
+		{
+			if(armMode==0){
+				target = SensorValue[POT];
+				armMode = 1;
+			}
+		}
+		else if(vexRT[Btn6D] == 1)
+		{
+			if(armMode==1){
+				armMode = 0;
+			}
 		}
 
 		// Motor values can only be updated every 20ms
