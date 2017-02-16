@@ -75,6 +75,8 @@ task runArm()
 			else{
 				motor[ARMA] = 0;
 				motor[ARMB] = 0;
+				target = SensorValue[POT];
+				armMode = 1;
 			}
 			// Motor values can only be updated every 20ms
 			wait1Msec(20);
@@ -152,19 +154,14 @@ task main()
 			target = downPOS;
 		}
 
-		//Toggle PID
-		if(vexRT[Btn6U] == 1)
+		//Manual Operation of Arm
+		if(vexRT[Btn5U] == 1)
 		{
-			if(armMode==0){
-				target = SensorValue[POT];
-				armMode = 1;
-			}
+			armMode = 0;
 		}
-		else if(vexRT[Btn6D] == 1)
+		else if(vexRT[Btn5D] == 1)
 		{
-			if(armMode==1){
-				armMode = 0;
-			}
+			armMode = 0;
 		}
 
 		// Motor values can only be updated every 20ms
