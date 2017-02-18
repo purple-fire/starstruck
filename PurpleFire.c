@@ -179,17 +179,6 @@ void holonomicDrive(int Y1,int X1,int X2)
 	motor[BL] = -Y1 + X1 - X2;
 }
 
-//Holonomic Drive using 3 Inputs
-void holonomicDrive(int Y1,int X1,int X2, float seconds)
-{
-	// Y component, X component, Rotation
-	motor[FL] = -Y1 - X1 - X2;
-	motor[FR] =  Y1 - X1 - X2;
-	motor[BR] =  Y1 + X1 - X2;
-	motor[BL] = -Y1 + X1 - X2;
-	wait1Msec(seconds*1000);
-}
-
 //Holonomic Drive Forward using speed Input
 void holonomicForward(int speed, float seconds)
 {
@@ -368,9 +357,6 @@ task autoPilot()
 {
 	armMode = 1;
 	clawMode = 1;
-	//Start Arm/Claw Management Task
-	startTask(runArm);
-	startTask(claw);
 
 	//Push Off Right Stars
 	target = downPOS;

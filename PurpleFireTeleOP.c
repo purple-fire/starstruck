@@ -24,24 +24,65 @@
 #define chuckPOS 2355
 #define pushPOS 3150
 
-#define clawOPEN 1120
-#define clawCLOSE 367
+#define clawOPEN 1548
+#define clawCLOSE 270
 
-
+int autoPilotActive = 0;
 int armMode = 0;
+int clawMode = 0;
+float target;
+float clawTarget;
 
-float target, //the potentiometer value you want
-error, //the difference between target and current
-proportionalCoefficient, //what you multiply error by to get motor power
-proportional, //P term, what you set motors to
-motorPower; //what you set the motors to
+task claw()
+{
+	clawTarget = clawCLOSE;
+	float proportionalCoefficient = 0.5;
+	float error,
+	motorPower,
+	proportional; //what you set the motors to
+	while (true)
+	{
+		//ENABLE PID
+		if(clawMode==1){
+			error = clawTarget - SensorValue[POTCLAW];
+			proportional = error * proportionalCoefficient;
+			motorPower = proportional;
+			motor[CLAW1] = -motorPower;
+			motor[CLAW2] = -motorPower;
+		}
+		//DISABLE PID
+		else if(clawMode==0){
+			//Claw Open
+			if(vexRT[Btn8U] == 1)
+			{
+				motor[CLAW1] = 75;
+				motor[CLAW2] = 75;
+			}
+			//Claw Close
+			else if(vexRT[Btn8D] == 1)
+			{
+				motor[CLAW1] = -75;
+				motor[CLAW2] = -75;
+			}
+			//Arm Stop
+			else{
+				clawTarget = SensorValue[POTCLAW];
+				clawMode = 1;
+			}
+			// Motor values can only be updated every 20ms
+			wait1Msec(20);
+		}
+	}
+}
 
 //Task to Manage Arm Position
 task runArm()
 {
 	target = downPOS;
-	proportionalCoefficient = 0.5;
-
+	float proportionalCoefficient = 0.5;
+	float error,
+	motorPower,
+	proportional; //what you set the motors to
 	while (true)
 	{
 		//ENABLE PID
@@ -107,118 +148,251 @@ task runArm()
 void holonomicDrive(int Y1,int X1,int X2)
 {
 	// Y component, X component, Rotation
-	motor[FL] = -Y1 - X1 - X2/2;
-	motor[FR] =  Y1 - X1 - X2/2;
-	motor[BR] =  Y1 + X1 - X2/2;
-	motor[BL] = -Y1 + X1 - X2/2;
+	motor[FL] = -Y1 - X1 - X2;
+	motor[FR] =  Y1 - X1 - X2;
+	motor[BR] =  Y1 + X1 - X2;
+	motor[BL] = -Y1 + X1 - X2;
+}
+
+//Holonomic Drive Forward using speed Input
+void holonomicForward(int speed, float seconds)
+{
+	// Y component, X component, Rotation
+	motor[FL] = -speed;
+	motor[FR] =  speed;
+	motor[BR] =  speed;
+	motor[BL] = -speed;
+	wait1Msec(seconds*1000);
+}
+
+//Holonomic Drive Backward using speed Input
+void holonomicBackward(int speed, float seconds)
+{
+	// Y component, X component, Rotation
+	motor[FL] =  speed;
+	motor[FR] = -speed;
+	motor[BR] = -speed;
+	motor[BL] =  speed;
+	wait1Msec(seconds*1000);
+}
+
+//Holonomic Drive Left using speed Input
+void holonomicRight(int speed, float seconds)
+{
+	// Y component, X component, Rotation
+	motor[FL] = -speed;
+	motor[FR] = -speed;
+	motor[BR] = speed;
+	motor[BL] = speed;
+	wait1Msec(seconds*1000);
+}
+
+//Holonomic Drive Right using speed Input
+void holonomicLeft(int speed, float seconds)
+{
+	// Y component, X component, Rotation
+	motor[FL] = speed;
+	motor[FR] = speed;
+	motor[BR] = -speed;
+	motor[BL] = -speed;
+	wait1Msec(seconds*1000);
+}
+
+//Holonomic Drive Rotate Left using speed Input
+void holonomicRotateLeft(int speed,float seconds)
+{
+	// Y component, X component, Rotation
+	motor[FL] = speed;
+	motor[FR] = speed;
+	motor[BR] = speed;
+	motor[BL] = speed;
+	wait1Msec(seconds*1000);
+}
+
+//Holonomic Drive Rotate Right using speed Input
+void holonomicRotateRight(int speed, float seconds)
+{
+	// Y component, X component, Rotation
+	motor[FL] = -speed;
+	motor[FR] = -speed;
+	motor[BR] = -speed;
+	motor[BL] = -speed;
+	wait1Msec(seconds*1000);
+}
+
+//Stop All Motors
+void holonomicStop()
+{
+	motor[FL] = 0;
+	motor[FR] = 0;
+	motor[BR] = 0;
+	motor[BL] = 0;
+}
+
+task autoPilot()
+{
+	armMode = 1;
+	clawMode = 1;
+
+	//Push Off Right Stars
+	target = downPOS;
+	clawTarget = clawCLOSE+75;
+	wait1Msec(800);
+	target = pushPOS;
+	clawTarget = clawOPEN;
+	wait1Msec(1000);
+	holonomicForward(110,1);
+	holonomicRight(40,.7);
+	holonomicRotateLeft(25,.25);
+	holonomicForward(115,.55);
+	target = pushPOS-400;
+
+	//Go Get Stars
+	wait1Msec(500);
+	holonomicBackward(110,2);
+	holonomicStop();
+	wait1Msec(1500);
+	clawTarget = clawCLOSE;
+	wait1Msec(500);
+	holonomicForward(110,1.45);
+	clawTarget = clawOPEN;
+
+	//Go Get Cube 1
+	wait1Msec(1000);
+	holonomicBackward(110,2);
+	holonomicStop();
+	wait1Msec(1000);
+	clawTarget = clawCLOSE;
+	wait1Msec(500);
+	holonomicForward(110,1.45);
+	clawTarget = clawOPEN;
+
+	//Go Get Cube 2
+	wait1Msec(500);
+	holonomicBackward(110,2);
+	holonomicStop();
+	wait1Msec(1000);
+	clawTarget = clawCLOSE;
+	wait1Msec(500);
+	holonomicForward(110,1.45);
+	clawTarget = clawOPEN;
+
+	//Push second fence jacks
+	holonomicBackward(110, 0.5);
+	holonomicStop();
+	wait1Msec(1000);
+	holonomicRotateLeft(25,0.5);
+	holonomicLeft(110,1.5);
+	holonomicRotateRight(25,0.25);
+
+	//Stop Holonomic
+	holonomicStop();
+
+	//DONE!
 }
 
 task main()
 {
 	// User control code here, inside the loop
 	startTask(runArm);
+	startTask(claw);
+
 	//Set arm mode to enable PID
 	armMode = 1;
 
 	//Create "deadzone" variables.
 	int X2 = 0, Y1 = 0, X1 = 0, threshold = 30;
 
-
 	while (true)
 	{
-		// This is the main execution loop for the user control program.
-		// Each time through the loop your program should update motor + servo
-		// values based on feedback from the joysticks.
+		if(autoPilotActive==0){
+			// This is the main execution loop for the user control program.
+			// Each time through the loop your program should update motor + servo
+			// values based on feedback from the joysticks.
 
-		// ........................................................................
-		// Insert user code here. This is where you use the joystick values to
-		// update your motors, etc.
-		// ........................................................................
+			// ........................................................................
+			// Insert user code here. This is where you use the joystick values to
+			// update your motors, etc.
+			// ........................................................................
 
-		//Holonomic Drive Deadzone
-		if(abs(C1LY) > threshold){
-			Y1 = C1LY;
-		}
-		else{
-			Y1 = 0;
-		}
-		if(abs(C1LX) > threshold){
-			X1 = C1LX;
-		}
-		else{
-			X1 = 0;
-		}
-		if(abs(C1RX) > threshold){
-			X2 = C1RX;
-		}
-		else{
-			X2 = 0;
-		}
-
-		//Holonomic Drive Function
-		holonomicDrive(Y1,X1,X2);
-
-		//Arm CHUCK
-		if(vexRT[Btn7U] == 1)
-		{
-			target = chuckPOS;
-		}
-		//Arm UP
-		else if(vexRT[Btn7L] == 1)
-		{
-			target = upPOS;
-		}
-		//Arm Down
-		else if(vexRT[Btn7D] == 1)
-		{
-			target = downPOS;
-		}
-
-		//Toggle PID
-		if(vexRT[Btn6U] == 1)
-		{
-			if(armMode==0){
-				target = SensorValue[POT];
-				armMode = 1;
-			}
-		}
-		else if(vexRT[Btn6D] == 1)
-		{
-			if(armMode==1){
-				armMode = 0;
-			}
-		}
-
-		if(vexRT[Btn8U] == 1)
-		{
-			if ((SensorValue[POTCLAW])<clawOPEN){
-				motor[CLAW1] = -100;
-				motor[CLAW2] = -100;
+			//Holonomic Drive Deadzone
+			if(abs(C1LY) > threshold){
+				Y1 = C1LY;
 			}
 			else{
-				motor[CLAW1] = 0;
-				motor[CLAW2] = 0;
+				Y1 = 0;
 			}
-		}
-		else if(vexRT[Btn8D] == 1)
-		{
-			if((SensorValue[POTCLAW])>clawCLOSE){
-				motor[CLAW1] = 100;
-				motor[CLAW2] = 100;
+			if(abs(C1LX) > threshold){
+				X1 = C1LX;
 			}
 			else{
-				motor[CLAW1] = 0;
-				motor[CLAW2] = 0;
+				X1 = 0;
+			}
+			if(abs(C1RX) > threshold){
+				X2 = C1RX;
+			}
+			else{
+				X2 = 0;
+			}
+
+			//Holonomic Drive Function
+			holonomicDrive(Y1,X1,X2);
+
+			//Arm CHUCK
+			if(vexRT[Btn7U] == 1)
+			{
+				target = chuckPOS;
+			}
+			//Arm UP
+			else if(vexRT[Btn7L] == 1)
+			{
+				target = upPOS;
+			}
+			//Arm Down
+			else if(vexRT[Btn7D] == 1)
+			{
+				target = downPOS;
+			}
+
+			//Toggle PID
+			if(vexRT[Btn6U] == 1)
+			{
+				if(armMode==0){
+					target = SensorValue[POT];
+					armMode = 1;
+				}
+			}
+			else if(vexRT[Btn6D] == 1)
+			{
+				if(armMode==1){
+					armMode = 0;
+				}
+			}
+
+			if(vexRT[Btn8U] == 1)
+			{
+				clawMode = 0;
+			}
+			else if(vexRT[Btn8D] == 1)
+			{
+				clawMode = 0;
+			}
+
+			if(vexRT[Btn8L] == 1)
+			{
+				startTask(autoPilot);
+				autoPilotActive = 1;
 			}
 		}
 		else{
-			motor[CLAW1] = 0;
-			motor[CLAW2] = 0;
+			if(vexRT[Btn8R] == 1)
+			{
+				stopTask(autoPilot);
+				autoPilotActive = 0;
+			}
 		}
-
 		// Motor values can only be updated every 20ms
 		wait1Msec(20);
 
 	}
-
 }
