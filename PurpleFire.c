@@ -45,7 +45,7 @@
 int autoPilotActive = 0;
 int armMode = 0;
 int clawMode = 0;
-float target;
+float armTarget;
 float clawTarget;
 
 /*---------------------------------------------------------------------------*/
@@ -57,7 +57,7 @@ float clawTarget;
 /*  function is only called once after the cortex has been powered on and    */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
-//Task to Manage Arm Position
+//Task to Manage Claw Position
 task claw()
 {
 	clawTarget = clawCLOSE;
@@ -89,7 +89,7 @@ task claw()
 				motor[CLAW1] = -75;
 				motor[CLAW2] = -75;
 			}
-			//Arm Stop
+			//Claw Stop
 			else{
 				clawTarget = SensorValue[POTCLAW];
 				clawMode = 1;
@@ -103,7 +103,7 @@ task claw()
 //Task to Manage Arm Position
 task runArm()
 {
-	target = downPOS;
+	armTarget = downPOS;
 	float proportionalCoefficient = 0.5;
 	float error,
 	motorPower,
@@ -112,7 +112,7 @@ task runArm()
 	{
 		//ENABLE PID
 		if(armMode==1){
-			error = target - SensorValue[POT];
+			error = armTarget - SensorValue[POT];
 			proportional = error * proportionalCoefficient;
 			motorPower = proportional;
 			motor[RARMA] = motorPower;
@@ -158,10 +158,8 @@ task runArm()
 			}
 			//Arm Stop
 			else{
-				motor[RARMA] = 0;
-				motor[RARMB] = 0;
-				motor[LARMA] = 0;
-				motor[LARMB] = 0;
+				armTarget = SensorValue[POT];
+				armMode = 1;
 			}
 			// Motor values can only be updated every 20ms
 			wait1Msec(20);
@@ -288,17 +286,17 @@ task autonomous()
 	startTask(claw);
 
 	//Push Off Right Stars
-	target = downPOS;
+	armTarget = downPOS;
 	clawTarget = clawCLOSE+75;
 	wait1Msec(800);
-	target = pushPOS;
+	armTarget = pushPOS;
 	clawTarget = clawOPEN;
 	wait1Msec(1000);
 	holonomicForward(110,1);
 	holonomicRight(40,.7);
 	holonomicRotateLeft(25,.25);
 	holonomicForward(115,.55);
-	target = pushPOS-400;
+	armTarget = pushPOS-400;
 
 	//Go Get Stars
 	wait1Msec(500);
@@ -353,23 +351,25 @@ task autonomous()
 /*                                                                           */
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
+
+//Like Tesla but Better
 task autoPilot()
 {
 	armMode = 1;
 	clawMode = 1;
 
 	//Push Off Right Stars
-	target = downPOS;
+	armTarget = downPOS;
 	clawTarget = clawCLOSE+75;
 	wait1Msec(800);
-	target = pushPOS;
+	armTarget = pushPOS;
 	clawTarget = clawOPEN;
 	wait1Msec(1000);
 	holonomicForward(110,1);
 	holonomicRight(40,.7);
 	holonomicRotateLeft(25,.25);
 	holonomicForward(115,.55);
-	target = pushPOS-400;
+	armTarget = pushPOS-400;
 
 	//Go Get Stars
 	wait1Msec(500);
@@ -462,46 +462,27 @@ task usercontrol()
 			//Holonomic Drive Function
 			holonomicDrive(Y1,X1,X2);
 
-			//Arm CHUCK
-			if(vexRT[Btn7U] == 1)
+			//Move Arm
+			if(vexRT[Btn5U] == 1)
 			{
-				target = chuckPOS;
+				armMode = 0;
 			}
-			//Arm UP
-			else if(vexRT[Btn7L] == 1)
+			else if(vexRT[Btn5D] == 1)
 			{
-				target = upPOS;
-			}
-			//Arm Down
-			else if(vexRT[Btn7D] == 1)
-			{
-				target = downPOS;
+				armMode = 0;
 			}
 
-			//Toggle PID
+			//Move Claw
 			if(vexRT[Btn6U] == 1)
 			{
-				if(armMode==0){
-					target = SensorValue[POT];
-					armMode = 1;
-				}
+				clawMode = 0;
 			}
 			else if(vexRT[Btn6D] == 1)
 			{
-				if(armMode==1){
-					armMode = 0;
-				}
-			}
-
-			if(vexRT[Btn8U] == 1)
-			{
-				clawMode = 0;
-			}
-			else if(vexRT[Btn8D] == 1)
-			{
 				clawMode = 0;
 			}
 
+			//Toggle AutoPilot
 			if(vexRT[Btn8L] == 1)
 			{
 				startTask(autoPilot);
