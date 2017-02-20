@@ -78,13 +78,13 @@ task claw()
 		//DISABLE PID
 		else if(clawMode==0){
 			//Claw Open
-			if(vexRT[Btn8U] == 1)
+			if(vexRT[Btn6U] == 1)
 			{
 				motor[CLAW1] = 75;
 				motor[CLAW2] = 75;
 			}
 			//Claw Close
-			else if(vexRT[Btn8D] == 1)
+			else if(vexRT[Btn6D] == 1)
 			{
 				motor[CLAW1] = -75;
 				motor[CLAW2] = -75;
