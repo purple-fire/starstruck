@@ -23,7 +23,7 @@
 task DragonDrive()
 {
 	//Create "deadzone" variables.
-	int LY1 = 0, RY1 = 0, threshold = 30;
+	int LY1 = 0, LX1 = 0, RX1 = 0, threshold = 30;
 
 	while(true)
 	{
@@ -34,17 +34,23 @@ task DragonDrive()
 		else{
 			LY1 = 0;
 		}
-		if(abs(C1RY) > threshold){
-			RY1 = C1RY;
+		if(abs(C1RX) > threshold){
+			RX1 = C1RX;
 		}
 		else{
-			RY1 = 0;
+			RX1 = 0;
+		}
+		if(abs(C1LX) > threshold){
+			LX1 = C1LX;
+		}
+		else{
+			LX1 = 0;
 		}
 		//Send Power to Motor
-		motor[FL] = LY1;
-		motor[BL] = LY1;
-		motor[FR] = RY1;
-		motor[BR] = RY1;
+		motor[FL] = LY1+LX1;
+		motor[BL] = LY1+LX1;
+		motor[FR] = LY1-LX1;
+		motor[BR] = LY1-LX1;
 		// Motor values can only be updated every 20ms
 		wait1Msec(20);
 	}
