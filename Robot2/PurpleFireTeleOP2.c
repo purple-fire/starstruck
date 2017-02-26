@@ -1,6 +1,6 @@
 #pragma config(Sensor, in1,    POT,            sensorPotentiometer)
 #pragma config(Sensor, in2,    POTCLAW,        sensorPotentiometer)
-#pragma config(Sensor, in5,    Gyro,           sensorGyro)
+#pragma config(Sensor, in4,    Gyro,           sensorGyro)
 #pragma config(Sensor, dgtl9,  RightEncoder,   sensorQuadEncoder)
 #pragma config(Sensor, dgtl11, LeftEncoder,    sensorQuadEncoder)
 #pragma config(Motor,  port1,           BL,            tmotorVex393_HBridge, openLoop)
@@ -319,8 +319,32 @@ void pre_auton()
 //																																										 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
-task autonomous()
+//task usercontrol()
+task autonomous
 {
+	desiredClawAngle = SensorValue[POTCLAW];
+	desiredLiftAngle = SensorValue[POT];
+
+	//start tasks
+	startTask(StraightDriveControl);
+	//startTask(AutoReleaseControl);
+	startTask(AutonClawControl);
+	startTask(AutonLiftControl);
+
+	//enable toggles
+	liftToggle = true;
+	clawToggle = true;
+	autoReleaseToggle = true;
+
+	//reset gyro
+	SensorValue[Gyro] = 0;
+
+	//open claw and midfield drive
+	//SetClawAngle(2200);
+	DriveForward(100, 500, 0);
+
+	//turn towards cube
+	TurnLeft(100, -800);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -329,6 +353,7 @@ task autonomous()
 //																																										 //
 /////////////////////////////////////////////////////////////////////////////////////////
 task usercontrol()
+//task autonomous()
 {
 	desiredClawAngle = SensorValue[POTCLAW];
 	desiredLiftAngle = SensorValue[POT];
