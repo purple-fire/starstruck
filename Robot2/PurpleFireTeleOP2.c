@@ -128,19 +128,19 @@ void DriveForward(int power, int position, int gyroSet)																		//
 {																																													//
 	SensorValue[RightEncoder] = 0;																													//
 	SensorValue[LeftEncoder] = 0;																														//
-																																													//
+	//
 	setGyroPosition = gyroSet;																															//
-																																													//
+	//
 	straightDrive = true;																																		//
-																																													//
+	//
 	driveConstant = power;																																	//
-																																													//
+	//
 	while(SensorValue[RightEncoder] < position)																							//
 	{																																												//
 	}																																												//
-																																													//
+	//
 	straightDrive = false;																																	//
-																																													//
+	//
 	motor[BL] = 0;																																			   	//
 	motor[FL] = 0;																																					//
 	motor[BR] = 0;																																					//
@@ -153,19 +153,19 @@ void DriveBackwardsE(int power, int position, int gyroSet)																//
 {																																													//
 	SensorValue[RightEncoder] = 0;																													//
 	SensorValue[LeftEncoder] = 0;																														//
-																																													//
+	//
 	setGyroPosition = gyroSet;																															//
-																																													//
+	//
 	straightDrive = true;																																		//
-																																													//
+	//
 	driveConstant = (-1 * power);																														//
-																																													//
+	//
 	while(SensorValue[RightEncoder] > (-1 * position))																			//
 	{																																												//
 	}																																												//
-																																													//
+	//
 	straightDrive = false;																																	//
-																																													//
+	//
 	motor[BL] = 0;																																					//
 	motor[FL] = 0;																																					//
 	motor[BR] = 0;																																					//
@@ -178,23 +178,23 @@ void DriveBackwardsT(int power, int waitTime)																							//
 {																																													//
 	SensorValue[RightEncoder] = 0;																													//
 	SensorValue[LeftEncoder] = 0;																														//
-																																													//
-																																													//
+	//
+	//
 	straightDrive = false;																																	//
-																																													//
+	//
 	motor[BL] = (-1 * power);																																//
 	motor[FL] = (-1 * power);																																//
 	motor[BR] = (-1 * power);																																//
 	motor[FR] = (-1 * power);																																//
-																																													//
+	//
 	wait1Msec(waitTime);																																		//
-																																													//
+	//
 	straightDrive = false;																																	//
-																																													//
-	motor[BL] = 10;																																					//
-	motor[FL] = 10;																																					//
-	motor[BR] = 10;																																					//
-	motor[FR] = 10;																																					//
+	//
+	motor[BL] = 0;																																					//
+	motor[FL] = 0;																																					//
+	motor[BR] = 0;																																					//
+	motor[FR] = 0;																																					//
 }																																													//
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -242,7 +242,7 @@ void TurnLeft(int power, int position)
 int limitMotorPower(int power)																														//
 {																																													//
 	int	outputPower;																																				//
-																																													//
+	//
 	outputPower = power;																																		//
 	if(outputPower > MAX_POWER_OUT)																													//
 	{																																												//
@@ -277,7 +277,6 @@ void AssignLift(int BLLPower, int BRLPower, int LLPower, int RLPower)
 /////////
 
 task StraightDriveControl();
-task AcceptDenyControl();
 task AutoReleaseControl();
 task AutonLiftControl();
 task AutonClawControl();
@@ -312,8 +311,8 @@ task autonomous
 	desiredLiftAngle = SensorValue[POT];
 
 	//start tasks
-	startTask(StraightDriveControl);
 	//startTask(AutoReleaseControl);
+	startTask(StraightDriveControl);
 	startTask(AutonClawControl);
 	startTask(AutonLiftControl);
 
@@ -343,7 +342,6 @@ task usercontrol()
 {
 	desiredClawAngle = SensorValue[POTCLAW];
 	desiredLiftAngle = SensorValue[POT];
-	//startTask(AcceptDenyControl);
 	//startTask(AutoReleaseControl);
 	startTask(AutonLiftControl);
 	startTask(AutonClawControl);
@@ -383,7 +381,7 @@ task StraightDriveControl()
 	}
 }
 
-task AcceptDenyControl()
+task AutoReleaseControl()
 {
 	while(true)
 	{
@@ -395,16 +393,8 @@ task AcceptDenyControl()
 		{
 			autoReleaseToggle = true;
 		}
-		wait1Msec(20);
-	}
-}
 
-task AutoReleaseControl()
-{
-	while(true)
-	{
 		presentLiftAngle = SensorValue[POT];
-
 		liftSpeed = (presentLiftAngle - previousLiftAngle);
 
 		if(autoReleaseToggle == true)
@@ -561,14 +551,14 @@ task LiftControl()
 		}
 		else if(1 == vexRT[LIFT_DOWN_BUTTON])
 		{
-				liftToggle = false;
-				motor[LARMB] = -127;
-				motor[RARMB] = -127;
-				motor[LARMA] = -127;
-				motor[RARMA] = -127;
-				hogCPU();
-				desiredLiftAngle = SensorValue[POT];
-				releaseCPU();
+			liftToggle = false;
+			motor[LARMB] = -127;
+			motor[RARMB] = -127;
+			motor[LARMA] = -127;
+			motor[RARMA] = -127;
+			hogCPU();
+			desiredLiftAngle = SensorValue[POT];
+			releaseCPU();
 		}
 		else
 		{
