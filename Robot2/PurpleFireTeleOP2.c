@@ -3,6 +3,10 @@
 #pragma config(Sensor, in4,    Gyro,           sensorGyro)
 #pragma config(Sensor, dgtl9,  RightEncoder,   sensorQuadEncoder)
 #pragma config(Sensor, dgtl11, LeftEncoder,    sensorQuadEncoder)
+#pragma config(Sensor, dgtl5,  OneIndicator,   sensorLEDtoVCC)
+#pragma config(Sensor, dgtl6,  TwoIndicator,   sensorLEDtoVCC)
+#pragma config(Sensor, dgtl7,  ThreeIndicator, sensorLEDtoVCC)
+#pragma config(Sensor, dgtl8,  FourIndicator,  sensorLEDtoVCC)
 #pragma config(Motor,  port1,           BL,            tmotorVex393_HBridge, openLoop)
 #pragma config(Motor,  port2,           FL,            tmotorServoContinuousRotation, openLoop)
 #pragma config(Motor,  port3,           FR,            tmotorServoContinuousRotation, openLoop, reversed)
@@ -283,7 +287,7 @@ task AutonClawControl();
 task LiftControl();
 task ClawControl();
 task DriveControl();
-
+task IndicatorControl();
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //																																										 //
@@ -311,7 +315,8 @@ task autonomous
 	desiredLiftAngle = SensorValue[POT];
 
 	//start tasks
-	//startTask(AutoReleaseControl);
+	startTask(AutoReleaseControl);
+	startTask(IndicatorControl);
 	startTask(StraightDriveControl);
 	startTask(AutonClawControl);
 	startTask(AutonLiftControl);
@@ -342,7 +347,8 @@ task usercontrol()
 {
 	desiredClawAngle = SensorValue[POTCLAW];
 	desiredLiftAngle = SensorValue[POT];
-	//startTask(AutoReleaseControl);
+	startTask(AutoReleaseControl);
+	startTask(IndicatorControl);
 	startTask(AutonLiftControl);
 	startTask(AutonClawControl);
 	startTask(LiftControl);
@@ -432,13 +438,13 @@ task AutoReleaseControl()
 				fourStars = false;
 			}
 		}
-		else
-		{
-			autoReleasePoint = 4000;
-		}
+		//else
+		//{
+		//	autoReleasePoint = 4000;
+		//}
 
 		previousLiftAngle = presentLiftAngle;
-
+/*
 		if(SensorValue[POT] >= autoReleasePoint)
 		{
 			clawToggle = true;
@@ -446,7 +452,7 @@ task AutoReleaseControl()
 			desiredClawAngle = 1400;
 			releaseCPU();
 		}
-
+*/
 		wait1Msec(50);
 	}
 }
@@ -608,4 +614,40 @@ task DriveControl()
 		motor[BL] = LEFT_FORWARD_CHANNEL;
 	}
 	wait1Msec(20);
+}
+
+task IndicatorControl()
+{
+	while(true)
+	{
+		if(oneStar == true)
+		{
+			SensorValue[OneIndicator] = 1;
+			SensorValue[TwoIndicator] = 0;
+			SensorValue[ThreeIndicator] = 0;
+			SensorValue[FourIndicator] = 0;
+		}
+		else if(twoStars == true)
+		{
+			SensorValue[OneIndicator] = 1;
+			SensorValue[TwoIndicator] = 1;
+			SensorValue[ThreeIndicator] = 0;
+			SensorValue[FourIndicator] = 0;
+		}
+		else if(threeStars == true)
+		{
+			SensorValue[OneIndicator] = 1;
+			SensorValue[TwoIndicator] = 1;
+			SensorValue[ThreeIndicator] = 1;
+			SensorValue[FourIndicator] = 0;
+		}
+		else if(fourStars == true)
+		{
+			SensorValue[OneIndicator] = 1;
+			SensorValue[TwoIndicator] = 1;
+			SensorValue[ThreeIndicator] = 1;
+			SensorValue[FourIndicator] = 1;
+		}
+		wait1Msec(20);
+	}
 }
