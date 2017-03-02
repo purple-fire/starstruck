@@ -63,6 +63,9 @@
 
 #define clawOpen 1345
 #define clawClose 442
+#define armDown 68
+#define armUp 1311
+#define armChuck 2840
 
 ////////////////
 //Lift Control//
@@ -152,10 +155,10 @@ void DriveForward(int power, int position, int gyroSet)																		//
 	//
 	straightDrive = false;																																	//
 	//
-	motor[BL] = 0;																																			   	//
-	motor[FL] = 0;																																					//
-	motor[BR] = 0;																																					//
-	motor[FR] = 0;																																					//
+	motor[BL] = -10;																																			   	//
+	motor[FL] = -10;																																					//
+	motor[BR] = -10;																																					//
+	motor[FR] = -10;																																					//
 }																																													//
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -177,10 +180,10 @@ void DriveBackwardsE(int power, int position, int gyroSet)																//
 	//
 	straightDrive = false;																																	//
 	//
-	motor[BL] = 0;																																					//
-	motor[FL] = 0;																																					//
-	motor[BR] = 0;																																					//
-	motor[FR] = 0;																																					//
+	motor[BL] = 10;																																					//
+	motor[FL] = 10;																																					//
+	motor[BR] = 10;																																					//
+	motor[FR] = 10;																																					//
 }																																													//
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -202,10 +205,10 @@ void DriveBackwardsT(int power, int waitTime)																							//
 	//
 	straightDrive = false;																																	//
 	//
-	motor[BL] = 0;																																					//
-	motor[FL] = 0;																																					//
-	motor[BR] = 0;																																					//
-	motor[FR] = 0;																																					//
+	motor[BL] = 10;																																					//
+	motor[FL] = 10;																																					//
+	motor[BR] = 10;																																					//
+	motor[FR] = 10;																																					//
 }																																													//
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -222,10 +225,10 @@ void TurnRight(int power, int position)
 	while(SensorValue[Gyro] < position)
 	{
 	}
-	motor[BL] = 0;
-	motor[FL] = 0;
-	motor[BR] = 0;
-	motor[FR] = 0;
+	motor[BL] = -10;
+	motor[FL] = -10;
+	motor[BR] = 10;
+	motor[FR] = 10;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -242,10 +245,10 @@ void TurnLeft(int power, int position)
 	while(SensorValue[Gyro] > position)
 	{
 	}
-	motor[BL] = 0;
-	motor[FL] = 0;
-	motor[BR] = 0;
-	motor[FR] = 0;
+	motor[BL] = 10;
+	motor[FL] = 10;
+	motor[BR] = -10;
+	motor[FR] = -10;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -335,6 +338,9 @@ task autonomous
 	startTask(AutonClawControl);
 	startTask(AutonLiftControl);
 
+	desiredClawAngle = SensorValue[POTCLAW];
+	desiredLiftAngle = SensorValue[POT];
+
 	//enable toggles
 	liftToggle = true;
 	clawToggle = true;
@@ -347,24 +353,21 @@ task autonomous
 	SetClawAngle(clawOpen);
 	DriveForward(100, 500, 0);
 
-	/*
 	//turn towards cube
-	TurnLeft(100, -800);
+	TurnLeft(100, -600);
 
 	wait1Msec(200);
 
 	//drive into cube
-	DriveForward(100, 500, -900);
-  stopBot();
+	DriveForward(100, 500,-600);
+
 	//start claw close
 	clawToggle = false;
-	motor[CLAWA] = 127;
-	motor[CLAWB] = 127;
+	motor[CLAWA] = -127;
+	motor[CLAWB] = -127;
 
 	//finish cube drive
-	DriveForward(100, 150, -900);
-
-	//lift cube
+	DriveForward(100, 180,-600);
 	SetLiftAngle(1600);
 
 	//wait for lift to move and enable claw control
@@ -374,7 +377,7 @@ task autonomous
 	motor[CLAWA] = 0;
 	motor[CLAWB] = 0;
 	clawToggle = true;
-	SetClawAngle(SensorValue[POTCLAW] + 100);
+	SetClawAngle(SensorValue[POTCLAW] - 100);
 
 	//back up to prep for throw
 	DriveBackwardsE(100, 600, -900);
@@ -382,100 +385,102 @@ task autonomous
 	wait1Msec(500);
 
 	//turn to throw
-	TurnRight(70, -1500);
+	TurnLeft(70, -1500);
 
 	//back up to throw field cube
-	DriveBackwardsE(100, 200, -1710);
+	DriveBackwardsE(100, 100, -1710);
 	//throw cube
 	SetLiftAngle(2650);
 	//finish back drive
-	DriveBackwardsT(127, 1000);
-
+	DriveBackwardsT(127, 500);
 
 	//drop lift
-	SetLiftAngle(0);
+	SetLiftAngle(armDown);
 	//wait for lift to lower
 	while(SensorValue[POT] > 800)
 	{
 	}
 
 	//drive into first load
-	DriveForward(100, 950, -1940);
+	DriveForward(100, 825, -1498);
 
 	//grab first load
 	clawToggle = false;
-	motor[CLAWA] = 127;
-	motor[CLAWB] = 127;
+	motor[CLAWA] = -127;
+	motor[CLAWB] = -127;
 	wait1Msec(1100);
+	SetLiftAngle(1600);
+	//wait for lift to move and enable claw control
+	while(SensorValue[POT] < 1000)
+	{
+	}
 	motor[CLAWA] = 0;
 	motor[CLAWB] = 0;
 	clawToggle = true;
-	SetClawAngle(SensorValue[POTCLAW] + 300);
-
+	SetClawAngle(SensorValue[POTCLAW] - 100);
 
 	//lift first load and back up
 	SetLiftAngle(1750);
-	DriveBackwardsE(100, 300, -1960);
+	DriveBackwardsE(100, 300, -1478);
 	//wait for lift
 	while(SensorValue[POT] < 1700)
 	{
 	}
 
 	//back up to throw
-	DriveBackwardsE(100, 280, -1960);
+	DriveBackwardsE(100, 170, -1478);
 	//throw
 	SetLiftAngle(2650);
-	DriveBackwardsT(100, 800);
+	DriveBackwardsT(100, 300);
 
 	//drop lift
-	SetLiftAngle(0);
+	SetLiftAngle(armDown);
 	//wait for lift to lower
 	while(SensorValue[POT] > 800)
 	{
 	}
 
 	//drive into second load
-	DriveForward(100, 950, -1900);
+	DriveForward(100, 825, -1498);
 
-	//grab second load
 	clawToggle = false;
-	motor[CLAWA] = 127;
-	motor[CLAWB] = 127;
+	motor[CLAWA] = -127;
+	motor[CLAWB] = -127;
 	wait1Msec(1100);
+	SetLiftAngle(1600);
+	//wait for lift to move and enable claw control
+	while(SensorValue[POT] < 1000)
+	{
+	}
 	motor[CLAWA] = 0;
 	motor[CLAWB] = 0;
 	clawToggle = true;
-	SetClawAngle(SensorValue[POTCLAW] + 300);
+	SetClawAngle(SensorValue[POTCLAW] - 100);
 
-
-	//lift second load and back up
+	//lift first load and back up
 	SetLiftAngle(1750);
-	DriveBackwardsE(100, 300, -1960);
+	DriveBackwardsE(100, 300, -1145);
 	//wait for lift
 	while(SensorValue[POT] < 1700)
 	{
 	}
 
 	//back up to throw
-	DriveBackwardsE(100, 280, -1960);
+	DriveBackwardsE(110, 150, -1145);
 	//throw
 	SetLiftAngle(2650);
-	DriveBackwardsT(100, 1000);
-
-	//drop lift and set claw
-	SetLiftAngle(600);
-	wait1Msec(800);
-	SetClawAngle(2150);
-
-	//drive away from fence
-	DriveForward(100, 170, -1900);
-
-	//turn towards front stars
-	TurnLeft(70, -930);
+	DriveBackwardsT(110, 320);
 
 	//drop lift
-	SetLiftAngle(0);
-	wait1Msec(500);
+	SetLiftAngle(armDown);
+	//wait for lift to lower
+	while(SensorValue[POT] > 800)
+	{
+	}
+	SetClawAngle(clawClose);
+
+	stopBot();
+	/*
 
 	//drive into stars
 	DriveForward(100, 350, -870);
@@ -758,8 +763,8 @@ task StraightDriveControl()
 
 			gyroError = (setGyroPosition - presentGyroPosition);
 
-			rightDrivePowerOut = ((gyroError * 0.5) + driveConstant);
-			leftDrivePowerOut = ((-1 * (gyroError * 0.5)) + driveConstant);
+			rightDrivePowerOut = ((-gyroError * 0.5) + driveConstant);
+			leftDrivePowerOut = ((-1 * (-gyroError * 0.5)) + driveConstant);
 
 			motor[BL] = leftDrivePowerOut;
 			motor[FL] = leftDrivePowerOut;
@@ -825,13 +830,13 @@ task AutoReleaseControl()
 				fourStars = false;
 			}
 		}
-		//else
-		//{
-		//	autoReleasePoint = 4000;
-		//}
+		else
+		{
+			autoReleasePoint = 4000;
+		}
 
 		previousLiftAngle = presentLiftAngle;
-/*
+
 		if(SensorValue[POT] >= autoReleasePoint)
 		{
 			clawToggle = true;
@@ -839,7 +844,7 @@ task AutoReleaseControl()
 			desiredClawAngle = 1400;
 			releaseCPU();
 		}
-*/
+
 		wait1Msec(50);
 	}
 }
@@ -853,7 +858,7 @@ task AutonLiftControl()
 			hogCPU();
 			actualLiftAngle = SensorValue[POT];
 			errorLiftAngle = (desiredLiftAngle - actualLiftAngle);
-			liftPowerOut = (errorLiftAngle * 0.3);
+			liftPowerOut = (errorLiftAngle * 0.2);
 			liftPowerOut = limitMotorPower(liftPowerOut);
 			motor[LARMB] = liftPowerOut;
 			motor[LARMA] = liftPowerOut;
@@ -877,7 +882,7 @@ task AutonClawControl()
 			hogCPU();
 			actualClawAngle = SensorValue[POTCLAW];
 			errorClawAngle = (desiredClawAngle - actualClawAngle);
-			clawPowerOut = (errorClawAngle * 0.3);
+			clawPowerOut = (errorClawAngle * 0.2);
 			clawPowerOut = limitMotorPower(clawPowerOut);
 			motor[CLAWA] = clawPowerOut;
 			motor[CLAWB] = clawPowerOut;
