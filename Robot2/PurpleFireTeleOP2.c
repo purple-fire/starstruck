@@ -58,6 +58,13 @@
 #define LEFT_SIDE_CHANNEL								vexRT[Ch4]
 
 ////////////////
+//Positions   //
+////////////////
+
+#define clawOpen 1345
+#define clawClose 442
+
+////////////////
 //Lift Control//
 ////////////////
 
@@ -276,6 +283,12 @@ void AssignLift(int BLLPower, int BRLPower, int LLPower, int RLPower)
 	motor[RARMA] = RLPower;
 }
 
+void stopBot(){
+	motor[BL] = 0;																																			   	//
+	motor[FL] = 0;																																					//
+	motor[BR] = 0;																																					//
+	motor[FR] = 0;																																					//
+}
 /////////
 //Tasks//
 /////////
@@ -331,17 +344,18 @@ task autonomous
 	SensorValue[Gyro] = 0;
 
 	//open claw and midfield drive
-	SetClawAngle(2200);
+	SetClawAngle(clawOpen);
 	DriveForward(100, 500, 0);
 
+	/*
 	//turn towards cube
-	TurnRight(100, -800);
+	TurnLeft(100, -800);
 
 	wait1Msec(200);
 
 	//drive into cube
 	DriveForward(100, 500, -900);
-
+  stopBot();
 	//start claw close
 	clawToggle = false;
 	motor[CLAWA] = 127;
@@ -702,6 +716,7 @@ task autonomous
 
 	AssignLift(20, 20, 20, 20);
 
+	*/
 
 	while(true)
 	{
@@ -890,30 +905,30 @@ task LiftControl()
 		{
 			liftToggle = true;
 			hogCPU();
-			desiredLiftAngle = 1402;
+			desiredLiftAngle = 1682;
 			releaseCPU();
 		}
 		else if(1 == vexRT[SCORE_BUTTON])
 		{
 			liftToggle = true;
 			hogCPU();
-			desiredLiftAngle = 2696;
+			desiredLiftAngle = 2734;
 			releaseCPU();
 		}
 		else if(1 == vexRT[TALL_FENCE_BUTTON])
 		{
 			liftToggle = true;
 			hogCPU();
-			desiredLiftAngle = 1282;
-			desiredClawAngle = 1949;
+			desiredLiftAngle = 1297;
+			desiredClawAngle = 1970;
 			releaseCPU();
 		}
 		else if(1 == vexRT[SHORT_FENCE_BUTTON])
 		{
 			liftToggle = true;
 			hogCPU();
-			desiredLiftAngle = 1112;
-			desiredClawAngle = 1961;
+			desiredLiftAngle = 955;
+			desiredClawAngle = 246;
 			releaseCPU();
 		}
 		else if(1 == vexRT[LIFT_UP_BUTTON])
