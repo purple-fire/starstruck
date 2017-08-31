@@ -58,10 +58,10 @@
 ////////////////
 
 #define clawOpen 1345
-#define clawClose 442
-#define armDown 68
-#define armUp 1311
-#define armChuck 2840
+#define clawClose 5705
+#define armDown 19
+#define armUp 840
+#define armChuck 1900
 
 ////////////////
 //Lift Control//
